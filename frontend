@@ -1,1 +1,83 @@
+import React, { useState } from 'react';
+
+const AudienceForm = ({ onCreate }) => {
+  const [rules, setRules] = useState([{ field: '', operator: '', value: '' }]);
+
+  const addRule = () => {
+    setRules([...rules, { field: '', operator: '', value: '' }]);
+  };
+
+  const handleChange = (index, event) => {
+    const newRules = rules.slice();
+    newRules[index][event.target.name] = event.target.value;
+    setRules(newRules);
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    onCreate(rules);
+  };
+
+  return (
+    <form onSubmit={handleSubmit}>
+      {rules.map((rule, index) => (
+        <div key={index}>
+          <select name="field" value={rule.field} onChange={(e) => handleChange(index, e)}>
+            <option value="">Select field</option>
+            <option value="totalSpends">Total Spends</option>
+            <option value="visits">Number of Visits</option>
+            <option value="lastVisit">Last Visit</option>
+          </select>
+          <select name="operator" value={rule.operator} onChange={(e) => handleChange(index, e)}>
+            <option value="">Select operator</option>
+            <option value=">">&gt;</option>
+            <option value="<">&lt;</option>
+            <option value="=">=</option>
+          </select>
+          <input
+            name="value"
+            type="text"
+            value={rule.value}
+            onChange={(e) => handleChange(index, e)}
+          />
+        </div>
+      ))}
+      <button type="button" onClick={addRule}>Add Rule</button>
+      <button type="submit">Create Audience</button>
+    </form>
+  );
+};
+
+export default AudienceForm;
+import React, { useState } from 'react';
+import AudienceForm from './components/AudienceForm';
+import axios from 'axios';
+
+const App = () => {
+  const [audiences, setAudiences] = useState([]);
+
+  const handleCreateAudience = async (rules) => {
+    try {
+      const response = await axios.post('/api/campaigns', { rules });
+      setAudiences([response.data, ...audiences]);
+    } catch (error) {
+      console.error('Error creating audience', error);
+    }
+  };
+
+  return (
+    <div>
+      <h1>Mini CRM Application</h1>
+      <AudienceForm onCreate={handleCreateAudience} />
+      <h2>Campaigns</h2>
+      <ul>
+        {audiences.map((audience, index) => (
+          <li key={index}>{JSON.stringify(audience)}</li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default App;
 
